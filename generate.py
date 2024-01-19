@@ -34,6 +34,14 @@ def num_range(s: str) -> List[int]:
 
 #----------------------------------------------------------------------------
 
+def get_default_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    elif getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+        return "mps"
+    else:
+        return "cpu"
+
 @click.command()
 @click.pass_context
 @click.option('--network', 'network_pkl', help='Network pickle filename', required=True)
@@ -79,7 +87,7 @@ def generate_images(
     """
 
     print('Loading networks from "%s"...' % network_pkl)
-    device = torch.device('cuda')
+    device = torch.device(get_default_device())
     with dnnlib.util.open_url(network_pkl) as f:
         G = legacy.load_network_pkl(f)['G_ema'].to(device) # type: ignore
 
